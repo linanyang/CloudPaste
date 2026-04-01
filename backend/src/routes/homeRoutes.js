@@ -1,9 +1,9 @@
-import { ApiStatus, UserType, DbTables } from "../../constants/index.js";
-import { jsonOk } from "../../utils/common.js";
-import { resolvePrincipal } from "../../security/helpers/principal.js";
-import { useRepositories } from "../../utils/repositories.js";
-import { getEncryptionSecret } from "../../utils/environmentUtils.js";
-import { NotFoundError } from "../../http/errors.js";
+import { ApiStatus, UserType, DbTables } from "../constants/index.js";
+import { jsonOk } from "../utils/common.js";
+import { resolvePrincipal } from "../security/helpers/principal.js";
+import { useRepositories } from "../utils/repositories.js";
+import { getEncryptionSecret } from "../utils/environmentUtils.js";
+import { NotFoundError } from "../http/errors.js";
 
 /**
  * 首页展示路由
@@ -33,23 +33,13 @@ export const registerHomeRoutes = (router) => {
     const identity = resolveOptionalPrincipal(c);
 
     const results = [];
-    const repositoryFactory = useRepositories(c);
-    const fileRepository = repositoryFactory.getFileRepository();
-    const pasteRepository = repositoryFactory.getPasteRepository();
 
     // 获取文本分享
     const shouldFetchPastes = type === "all" || type === "paste";
     if (shouldFetchPastes) {
       try {
-        let pastesQuery = db
-          .prepare(`
-            SELECT id, slug, title, remark, created_at, views, expires_at, max_views, is_public, has_password, created_by
-            FROM ${DbTables.PASTES}
-            WHERE 1=1
-          `);
-
-        const pastesConditions = [];
-        const pastesParams = [];
+        let pastesConditions = [];
+        let pastesParams = [];
 
         // 非管理员/API用户只能看公开分享或自己创建的
         if (!identity?.isAdmin) {
@@ -61,62 +51,32 @@ export const registerHomeRoutes = (router) => {
           }
         }
 
-        let finalPastesQuery = pastesQuery;
-        if (pastesConditions.length > 0) {
-          const whereClause = pastesConditions.join(" AND ");
-          finalPastesQuery = db.prepare(`
-            SELECT id, slug, title, remark, created_at, views, expires_at, max_views, is_public, has_password, created_by
-            FROM ${DbTables.PASTES}
-            WHERE ${whereClause}
-            ORDER BY created_at DESC
-            LIMIT ?
-          `);
-          const pasteResults = await finalPastesQuery.bind(...pastesParams, limit).all();
-          
-          for (const paste of pasteResults.results || []) {
-            // 检查是否过期
-            if (paste.expires_at && new Date(paste.expires_at) < new Date()) {
-              continue;
-            }
-            
-            results.push({
-              id: paste.id,
-              slug: paste.slug,
-              type: "paste",
-              title: paste.title || "无标题",
-              remark: paste.remark || "",
-              createdAt: paste.created_at,
-              views: paste.views || 0,
-              isPublic: paste.is_public === 1,
-              hasPassword: !!paste.has_password,
-            });
-          }
-        } else {
-          const pasteResults = await db.prepare(`
-            SELECT id, slug, title, remark, created_at, views, expires_at, max_views, is_public, has_password, created_by
-            FROM ${DbTables.PASTES}
-            ORDER BY created_at DESC
-            LIMIT ?
-          `).bind(limit).all();
+        const whereClause = pastesConditions.length > 0 ? `WHERE ${pastesConditions.join(" AND ")}` : "";
+        const pasteResults = await db.prepare(`
+          SELECT id, slug, title, remark, created_at, views, expires_at, max_views, is_public, password IS NOT NULL as has_password, created_by
+          FROM ${DbTables.PASTES}
+          ${whereClause}
+          ORDER BY created_at DESC
+          LIMIT ?
+        `).bind(...pastesParams, limit).all();
 
-          for (const paste of pasteResults.results || []) {
-            // 检查是否过期
-            if (paste.expires_at && new Date(paste.expires_at) < new Date()) {
-              continue;
-            }
-            
-            results.push({
-              id: paste.id,
-              slug: paste.slug,
-              type: "paste",
-              title: paste.title || "无标题",
-              remark: paste.remark || "",
-              createdAt: paste.created_at,
-              views: paste.views || 0,
-              isPublic: paste.is_public === 1,
-              hasPassword: !!paste.has_password,
-            });
+        for (const paste of pasteResults.results || []) {
+          // 检查是否过期
+          if (paste.expires_at && new Date(paste.expires_at) < new Date()) {
+            continue;
           }
+          
+          results.push({
+            id: paste.id,
+            slug: paste.slug,
+            type: "paste",
+            title: paste.title || "无标题",
+            remark: paste.remark || "",
+            createdAt: paste.created_at,
+            views: paste.views || 0,
+            isPublic: paste.is_public === 1,
+            hasPassword: !!paste.has_password,
+          });
         }
       } catch (error) {
         console.error("获取文本分享失败:", error);
@@ -127,35 +87,27 @@ export const registerHomeRoutes = (router) => {
     const shouldFetchFiles = type === "all" || type === "file";
     if (shouldFetchFiles) {
       try {
-        let filesQuery = db
-          .prepare(`
-            SELECT f.id, f.slug, f.filename, f.mimetype, f.size, f.created_at, f.views, f.expires_at, f.max_views, f.created_by, f.password
-            FROM ${DbTables.FILES} f
-            WHERE 1=1
-          `);
-
-        const filesConditions = [];
-        const filesParams = [];
+        let filesConditions = [];
+        let filesParams = [];
 
         // 非管理员/API用户只能看公开分享或自己创建的
         if (!identity?.isAdmin) {
           if (identity?.type === UserType.API_KEY && identity?.userId) {
-            // API用户可以看到公开的或自己创建的
-            filesConditions.push("f.created_by = ?");
+            // API用户可以看到自己创建的
+            filesConditions.push("created_by = ?");
             filesParams.push(`apikey:${identity.userId}`);
           } else {
-            // 匿名用户只能看到公开的（这里我们假设文件默认是公开分享的）
-            // 由于files表没有is_public字段，我们跳过匿名用户的文件显示
+            // 匿名用户暂不显示文件（files表没有is_public字段）
           }
         }
 
         if (filesConditions.length > 0 || identity?.isAdmin || identity?.type === UserType.API_KEY) {
           const whereClause = filesConditions.length > 0 ? `WHERE ${filesConditions.join(" AND ")}` : "";
           const fileResults = await db.prepare(`
-            SELECT f.id, f.slug, f.filename, f.mimetype, f.size, f.created_at, f.views, f.expires_at, f.max_views, f.created_by, f.password
-            FROM ${DbTables.FILES} f
+            SELECT id, slug, filename, mimetype, size, created_at, views, expires_at, max_views, created_by, password
+            FROM ${DbTables.FILES}
             ${whereClause}
-            ORDER BY f.created_at DESC
+            ORDER BY created_at DESC
             LIMIT ?
           `).bind(...filesParams, limit).all();
 
