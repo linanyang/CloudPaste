@@ -19,6 +19,18 @@ export default {
     reset: "重置",
     selectOption: "请选择",
     pleaseSelect: "请选择",
+    // 首页展示相关
+    all: "全部",
+    text: "文本",
+    image: "图片",
+    video: "视频",
+    audio: "音频",
+    document: "文档",
+    file: "文件",
+    protected: "加密",
+    untitled: "无标题",
+    refresh: "刷新",
+    loadMore: "加载更多",
     // 时间单位
     second: "秒",
     minute: "分",
@@ -124,7 +136,8 @@ export default {
     },
   },
   nav: {
-    home: "文本编辑",
+    home: "我的分享",
+    editor: "文本编辑",
     upload: "文件上传",
     mountExplorer: "挂载浏览",
     admin: "管理面板",
