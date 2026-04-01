@@ -35,7 +35,7 @@
     <div v-if="!isAuthenticated && !loading" class="flex-1 flex items-center justify-center">
       <div class="text-center py-12">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" :class="props.darkMode ? 'bg-gray-800' : 'bg-gray-100'">
-          <IconLock size="xl" :class="props.darkMode ? 'text-gray-500' : 'text-gray-400'" />
+          <IconLockClosed size="xl" :class="props.darkMode ? 'text-gray-500' : 'text-gray-400'" />
         </div>
         <h3 class="text-lg font-medium mb-2">{{ $t("home.loginRequired") || "需要登录" }}</h3>
         <p class="text-sm mb-4" :class="props.darkMode ? 'text-gray-400' : 'text-gray-500'">
@@ -160,7 +160,7 @@
               class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
               :class="props.darkMode ? 'bg-gray-900/70 text-yellow-400' : 'bg-white/80 text-yellow-600'"
             >
-              <IconLock size="xs" />
+              <IconLockClosed size="xs" />
               {{ $t("common.protected") || "加密" }}
             </div>
 
@@ -216,7 +216,7 @@ import { createLogger } from "@/utils/logger";
 import {
   IconRefresh,
   IconPlus,
-  IconLock,
+  IconLockClosed,
   IconDocument,
   IconDocumentText,
   IconFile,
