@@ -1,9 +1,6 @@
 import { ApiStatus, UserType, DbTables } from "../constants/index.js";
 import { jsonOk } from "../utils/common.js";
 import { resolvePrincipal } from "../security/helpers/principal.js";
-import { useRepositories } from "../utils/repositories.js";
-import { getEncryptionSecret } from "../utils/environmentUtils.js";
-import { NotFoundError } from "../http/errors.js";
 
 /**
  * 首页展示路由
@@ -38,27 +35,22 @@ export const registerHomeRoutes = (router) => {
     const shouldFetchPastes = type === "all" || type === "paste";
     if (shouldFetchPastes) {
       try {
-        let pastesConditions = [];
-        let pastesParams = [];
+        // 管理员可以看到所有，API用户只能看自己创建的
+        let whereClause = "";
+        let params = [];
 
-        // 非管理员/API用户只能看公开分享或自己创建的
-        if (!identity?.isAdmin) {
-          if (identity?.type === UserType.API_KEY && identity?.userId) {
-            pastesConditions.push("(is_public = 1 OR created_by = ?)");
-            pastesParams.push(`apikey:${identity.userId}`);
-          } else {
-            pastesConditions.push("is_public = 1");
-          }
+        if (identity?.type === UserType.API_KEY && identity?.userId && !identity?.isAdmin) {
+          whereClause = "WHERE created_by = ?";
+          params.push(`apikey:${identity.userId}`);
         }
 
-        const whereClause = pastesConditions.length > 0 ? `WHERE ${pastesConditions.join(" AND ")}` : "";
         const pasteResults = await db.prepare(`
-          SELECT id, slug, title, remark, created_at, views, expires_at, max_views, is_public, password IS NOT NULL as has_password, created_by
+          SELECT id, slug, title, remark, created_at, views, expires_at, max_views, created_by, password
           FROM ${DbTables.PASTES}
           ${whereClause}
           ORDER BY created_at DESC
           LIMIT ?
-        `).bind(...pastesParams, limit).all();
+        `).bind(...params, limit).all();
 
         for (const paste of pasteResults.results || []) {
           // 检查是否过期
@@ -74,8 +66,7 @@ export const registerHomeRoutes = (router) => {
             remark: paste.remark || "",
             createdAt: paste.created_at,
             views: paste.views || 0,
-            isPublic: paste.is_public === 1,
-            hasPassword: !!paste.has_password,
+            hasPassword: !!paste.password,
           });
         }
       } catch (error) {
@@ -87,53 +78,45 @@ export const registerHomeRoutes = (router) => {
     const shouldFetchFiles = type === "all" || type === "file";
     if (shouldFetchFiles) {
       try {
-        let filesConditions = [];
-        let filesParams = [];
+        // 管理员可以看到所有，API用户只能看自己创建的
+        let whereClause = "";
+        let params = [];
 
-        // 非管理员/API用户只能看公开分享或自己创建的
-        if (!identity?.isAdmin) {
-          if (identity?.type === UserType.API_KEY && identity?.userId) {
-            // API用户可以看到自己创建的
-            filesConditions.push("created_by = ?");
-            filesParams.push(`apikey:${identity.userId}`);
-          } else {
-            // 匿名用户暂不显示文件（files表没有is_public字段）
-          }
+        if (identity?.type === UserType.API_KEY && identity?.userId && !identity?.isAdmin) {
+          whereClause = "WHERE created_by = ?";
+          params.push(`apikey:${identity.userId}`);
         }
 
-        if (filesConditions.length > 0 || identity?.isAdmin || identity?.type === UserType.API_KEY) {
-          const whereClause = filesConditions.length > 0 ? `WHERE ${filesConditions.join(" AND ")}` : "";
-          const fileResults = await db.prepare(`
-            SELECT id, slug, filename, mimetype, size, created_at, views, expires_at, max_views, created_by, password
-            FROM ${DbTables.FILES}
-            ${whereClause}
-            ORDER BY created_at DESC
-            LIMIT ?
-          `).bind(...filesParams, limit).all();
+        const fileResults = await db.prepare(`
+          SELECT id, slug, filename, mimetype, size, created_at, views, expires_at, max_views, created_by, password
+          FROM ${DbTables.FILES}
+          ${whereClause}
+          ORDER BY created_at DESC
+          LIMIT ?
+        `).bind(...params, limit).all();
 
-          for (const file of fileResults.results || []) {
-            // 检查是否过期
-            if (file.expires_at && new Date(file.expires_at) < new Date()) {
-              continue;
-            }
-            
-            const isImage = file.mimetype?.startsWith("image/");
-            const isVideo = file.mimetype?.startsWith("video/");
-            const isAudio = file.mimetype?.startsWith("audio/");
-            
-            results.push({
-              id: file.id,
-              slug: file.slug,
-              type: "file",
-              title: file.filename,
-              mimetype: file.mimetype,
-              size: file.size,
-              createdAt: file.created_at,
-              views: file.views || 0,
-              hasPassword: !!file.password,
-              category: isImage ? "image" : isVideo ? "video" : isAudio ? "audio" : "document",
-            });
+        for (const file of fileResults.results || []) {
+          // 检查是否过期
+          if (file.expires_at && new Date(file.expires_at) < new Date()) {
+            continue;
           }
+          
+          const isImage = file.mimetype?.startsWith("image/");
+          const isVideo = file.mimetype?.startsWith("video/");
+          const isAudio = file.mimetype?.startsWith("audio/");
+          
+          results.push({
+            id: file.id,
+            slug: file.slug,
+            type: "file",
+            title: file.filename,
+            mimetype: file.mimetype,
+            size: file.size,
+            createdAt: file.created_at,
+            views: file.views || 0,
+            hasPassword: !!file.password,
+            category: isImage ? "image" : isVideo ? "video" : isAudio ? "audio" : "document",
+          });
         }
       } catch (error) {
         console.error("获取文件分享失败:", error);
