@@ -146,11 +146,6 @@ import IconArchiveOutlineSvg from '~icons/mdi/archive-outline'
 import IconDiscSvg from '~icons/mdi/disc'
 import IconFileTreeSvg from '~icons/mdi/file-tree'
 
-// 音乐和视频图标
-import IconMusicSvg from '~icons/mdi/music'
-import IconVideoSvg from '~icons/mdi/video'
-import IconFileSvg from '~icons/mdi/file'
-
 const normalizeClassName = (value) => {
   if (!value) return ''
   if (Array.isArray(value)) return value.filter(Boolean).join(' ')
@@ -405,11 +400,6 @@ export const IconMdiMapMarker = createIcon(IconMdiMapMarkerSvg)
 // 语言/翻译图标（用于 LanguageSwitcher）
 export const IconTranslate = createIcon(IconTranslateSvg)
 
-// 音乐、视频、文件类型图标（用于首页展示）
-export const IconMusic = createIcon(IconMusicSvg)
-export const IconVideo = createIcon(IconVideoSvg)
-export const IconFile = createIcon(IconFileSvg)
-
 // 索引管理专用图标
 export const IconTable = createIcon(IconTableCellsSvg)
 export const IconRebuild = createIcon(IconArrowPathSvg)
@@ -599,8 +589,5 @@ export default {
   IconPackageVariantClosed,
   IconArchiveOutline,
   IconDisc,
-  IconFileTree,
-  IconMusic,
-  IconVideo,
-  IconFile
+  IconFileTree
 }

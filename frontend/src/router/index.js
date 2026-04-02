@@ -43,7 +43,6 @@ const createOfflineAwareImport = (importFn, componentName = "页面") => {
 };
 
 const HomeView = createOfflineAwareImport(() => import("../modules/paste/editor/MarkdownEditorView.vue"), "首页");
-const HomeGalleryView = createOfflineAwareImport(() => import("../modules/home/HomeGalleryView.vue"), "我的分享");
 const UploadView = createOfflineAwareImport(() => import("../modules/upload/public/UploadView.vue"), "文件上传页面");
 const PasteView = createOfflineAwareImport(() => import("../modules/paste/public/PasteView.vue"), "文本分享页面");
 const FileView = createOfflineAwareImport(() => import("../modules/fileshare/public/FileView.vue"), "文件预览页面");
@@ -54,19 +53,10 @@ const routes = [
   {
     path: "/",
     name: "Home",
-    component: HomeGalleryView,
-    meta: {
-      title: "CloudPaste - 我的分享",
-      originalPage: "home",
-    },
-  },
-  {
-    path: "/editor",
-    name: "Editor",
     component: HomeView,
     meta: {
       title: "CloudPaste - 在线剪贴板",
-      originalPage: "editor",
+      originalPage: "home",
     },
   },
   {

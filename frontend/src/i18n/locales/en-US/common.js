@@ -18,18 +18,6 @@ export default {
     actions: "Actions",
     selectOption: "Please select",
     pleaseSelect: "Please select",
-    // Home gallery related
-    all: "All",
-    text: "Text",
-    image: "Image",
-    video: "Video",
-    audio: "Audio",
-    document: "Document",
-    file: "File",
-    protected: "Protected",
-    untitled: "Untitled",
-    refresh: "Refresh",
-    loadMore: "Load More",
     // Time units
     second: "s",
     minute: "m",
@@ -135,8 +123,7 @@ export default {
     },
   },
   nav: {
-    home: "My Shares",
-    editor: "Text Editor",
+    home: "Text Editor",
     upload: "File Upload",
     mountExplorer: "Mount Explorer",
     admin: "Admin Panel",

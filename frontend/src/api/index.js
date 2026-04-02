@@ -17,7 +17,6 @@ import * as systemService from "./services/systemService";
 import * as urlUploadService from "./services/urlUploadService";
 import * as fsService from "./services/fsService";
 import * as fsIndexService from "./services/fsIndexService";
-import * as homeService from "./services/homeService";
 
 // 统一服务导出 - 按功能模块重新组织
 export const api = {
@@ -37,9 +36,6 @@ export const api = {
     batchDeleteFiles: fileService.batchDeleteFiles,
     getMaxUploadSize: systemService.getMaxUploadSize,
   },
-
-  // 首页展示相关
-  home: homeService,
 
   // 存储配置相关
   storage: {
