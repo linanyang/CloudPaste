@@ -98,7 +98,7 @@ export default {
   },
   pageTitle: {
     // 主页面子标题（用于动态组合）
-    homeSubtitle: "在线剪贴板",
+    homeSubtitle: "分享列表",
     uploadSubtitle: "文件上传",
     pasteViewSubtitle: "查看分享",
     fileViewSubtitle: "文件预览",
@@ -124,7 +124,8 @@ export default {
     },
   },
   nav: {
-    home: "文本编辑",
+    home: "分享列表",
+    editor: "编辑器",
     upload: "文件上传",
     mountExplorer: "挂载浏览",
     admin: "管理面板",

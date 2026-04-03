@@ -42,7 +42,8 @@ const createOfflineAwareImport = (importFn, componentName = "页面") => {
     });
 };
 
-const HomeView = createOfflineAwareImport(() => import("../modules/paste/editor/MarkdownEditorView.vue"), "首页");
+const HomeView = createOfflineAwareImport(() => import("../modules/home/HomeView.vue"), "首页");
+const EditorView = createOfflineAwareImport(() => import("../modules/paste/editor/MarkdownEditorView.vue"), "编辑器");
 const UploadView = createOfflineAwareImport(() => import("../modules/upload/public/UploadView.vue"), "文件上传页面");
 const PasteView = createOfflineAwareImport(() => import("../modules/paste/public/PasteView.vue"), "文本分享页面");
 const FileView = createOfflineAwareImport(() => import("../modules/fileshare/public/FileView.vue"), "文件预览页面");
@@ -57,6 +58,15 @@ const routes = [
     meta: {
       title: "CloudPaste - 在线剪贴板",
       originalPage: "home",
+    },
+  },
+  {
+    path: "/editor",
+    name: "Editor",
+    component: EditorView,
+    meta: {
+      title: "编辑器 - CloudPaste",
+      originalPage: "editor",
     },
   },
   {
@@ -684,6 +694,9 @@ router.afterEach(async (to, from) => {
     switch (to.name) {
       case "Home":
         title = `${siteTitle} - ${t("pageTitle.homeSubtitle")}`;
+        break;
+      case "Editor":
+        title = `编辑器 - ${siteTitle}`;
         break;
       case "Upload":
         title = `${t("pageTitle.uploadSubtitle")} - ${siteTitle}`;
