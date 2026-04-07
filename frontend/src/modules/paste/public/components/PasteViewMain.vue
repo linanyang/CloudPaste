@@ -676,12 +676,12 @@ onBeforeUnmount(() => {
               仅内部可见
             </span>
           </div>
-          <div class="grid grid-cols-1 gap-4 text-sm">
-            <div v-if="paste.expires_at">
+          <div class="flex items-center justify-end gap-4 text-sm flex-wrap">
+            <div v-if="paste.expires_at" class="flex items-center">
               <span :class="darkMode ? 'text-gray-400' : 'text-gray-500'">过期时间:</span>
               <span class="ml-2" :class="[darkMode ? 'text-white' : 'text-gray-900', isExpired(paste.expires_at) ? 'text-red-500' : '']">{{ formatExpiry(paste.expires_at) }}</span>
             </div>
-            <div v-if="paste.max_views">
+            <div v-if="paste.max_views" class="flex items-center">
               <span :class="darkMode ? 'text-gray-400' : 'text-gray-500'">剩余查看次数:</span>
               <span
                 class="ml-2"
