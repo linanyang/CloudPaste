@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl w-full pt-8 sm:pt-12 pb-8">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl w-full pt-8 sm:pt-12 pb-20">
     <!-- Hero 区域 -->
     <div class="text-center mb-10">
       <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
@@ -25,33 +25,6 @@
         </div>
         <div class="text-xs sm:text-sm opacity-60">{{ stat.label }}</div>
       </div>
-    </div>
-
-    <!-- 快捷操作 -->
-    <div class="flex flex-wrap gap-3 mb-10 justify-center">
-      <router-link
-        to="/"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all
-               bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.97] shadow-token-1"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-        </svg>
-        {{ $t("home.createText") }}
-      </router-link>
-      <router-link
-        to="/upload"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all
-               border border-gray-300 hover:bg-gray-50 active:scale-[0.97]"
-        :class="darkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-200' : 'text-gray-700'"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-        </svg>
-        {{ $t("home.uploadFile") }}
-      </router-link>
     </div>
 
     <!-- 最近分享 -->
@@ -125,7 +98,6 @@
                   ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
                   : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
               ]"
-              :style="share.type === 'text' ? {} : {}"
             >
               <!-- 文本图标 -->
               <svg v-if="share.type === 'text'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,6 +156,44 @@
           </div>
         </a>
       </div>
+    </div>
+
+    <!-- 悬浮操作按钮 (FAB) -->
+    <div class="fixed right-5 bottom-5 sm:right-8 sm:bottom-8 flex flex-col gap-3 z-40">
+      <!-- 文本分享按钮 -->
+      <router-link
+        to="/editor"
+        :title="$t('home.createText')"
+        :class="[
+          'w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200',
+          'hover:scale-110 active:scale-95',
+          darkMode
+            ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-primary-900/30'
+            : 'bg-primary-600 hover:bg-primary-500 text-white shadow-primary-600/30',
+        ]"
+      >
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+      </router-link>
+      <!-- 文件上传按钮 -->
+      <router-link
+        to="/upload"
+        :title="$t('home.uploadFile')"
+        :class="[
+          'w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200',
+          'hover:scale-110 active:scale-95',
+          darkMode
+            ? 'bg-gray-700 hover:bg-gray-600 text-white shadow-gray-900/30 border border-gray-600'
+            : 'bg-white hover:bg-gray-50 text-gray-700 shadow-gray-300/50 border border-gray-200',
+        ]"
+      >
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+      </router-link>
     </div>
   </div>
 </template>
