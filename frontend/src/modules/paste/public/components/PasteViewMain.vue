@@ -592,21 +592,7 @@ onBeforeUnmount(() => {
         <span class="text-gray-700 dark:text-gray-300">文本分享</span>
       </div>
 
-      <!-- 标题与可见性信息 - 仅在非密码保护状态下显示 -->
-      <div v-if="paste && !needPassword" class="mb-3">
-        <div class="flex items-center flex-wrap gap-2">
-          <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
-            {{ paste.title || paste.slug || '未命名文本' }}
-          </h1>
-          <span
-            v-if="paste.is_public === false"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-          >
-            <IconUser size="xs" class="h-3.5 w-3.5 mr-1" />
-            仅内部可见
-          </span>
-        </div>
-      </div>
+      <!-- 标题与可见性信息 - 移入元信息框内显示 -->
 
       <!-- 加载中状态显示 -->
       <div v-if="loading" class="py-16 flex justify-center">
@@ -675,8 +661,21 @@ onBeforeUnmount(() => {
 
       <!-- 文本内容显示区域 - 主要内容容器 -->
       <div v-if="paste && !needPassword && !(error && !error.includes('成功') && !needPassword)" class="mt-6">
-        <!-- 元信息显示区域 - 显示过期时间和剩余查看次数 -->
+        <!-- 元信息显示区域 - 包含标题、过期时间和剩余查看次数 -->
         <div class="mb-6 p-5 border rounded-lg" :class="darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+          <!-- 标题 -->
+          <div class="flex items-center flex-wrap gap-2 mb-3" :class="{ 'mb-4': paste.expires_at || paste.max_views }">
+            <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
+              {{ paste.title || paste.slug || '未命名文本' }}
+            </h1>
+            <span
+              v-if="paste.is_public === false"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+            >
+              <IconUser size="xs" class="h-3.5 w-3.5 mr-1" />
+              仅内部可见
+            </span>
+          </div>
           <div class="grid grid-cols-1 gap-4 text-sm">
             <div v-if="paste.expires_at">
               <span :class="darkMode ? 'text-gray-400' : 'text-gray-500'">过期时间:</span>

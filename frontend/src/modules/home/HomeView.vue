@@ -82,8 +82,8 @@
               : 'bg-white border-gray-100 hover:border-gray-200',
           ]"
         >
-          <!-- 类型徽标 + 标题 -->
-          <div class="flex items-start gap-3 mb-2.5">
+          <!-- 类型徽标 + 文件名 -->
+          <div class="flex items-center gap-3 mb-3">
             <div
               :class="[
                 'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold',
@@ -103,17 +103,22 @@
                       d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
               </svg>
             </div>
-            <div class="min-w-0 flex-1">
-              <h3
-                class="text-sm font-medium truncate group-hover:text-primary-500 transition-colors"
-                :title="share.type === 'text' ? (share.title || share.remark || share.slug) : share.filename"
-              >
-                {{ share.type === 'text' ? (share.title || share.remark || share.slug) : share.filename }}
-              </h3>
-              <p v-if="share.remark && share.type === 'file'" class="text-xs opacity-50 truncate mt-0.5">
-                {{ share.remark }}
-              </p>
-            </div>
+            <span
+              class="text-sm font-medium truncate"
+              :title="share.type === 'text' ? (share.title || share.remark || share.slug) : share.filename"
+            >
+              {{ share.type === 'text' ? (share.title || share.remark || share.slug) : share.filename }}
+            </span>
+          </div>
+
+          <!-- 内容预览框 -->
+          <div
+            :class="[
+              'rounded-lg px-3 py-2.5 mb-3 min-h-[3rem] flex items-start text-sm leading-relaxed line-clamp-2',
+              darkMode ? 'bg-gray-900/50 text-gray-300' : 'bg-gray-50 text-gray-600',
+            ]"
+          >
+            {{ share.remark || (share.type === 'text' ? share.slug : share.filename) }}
           </div>
 
           <!-- 元信息行 -->
