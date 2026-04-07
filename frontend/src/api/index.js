@@ -17,6 +17,7 @@ import * as systemService from "./services/systemService";
 import * as urlUploadService from "./services/urlUploadService";
 import * as fsService from "./services/fsService";
 import * as fsIndexService from "./services/fsIndexService";
+import * as publicService from "./services/publicService";
 
 // 统一服务导出 - 按功能模块重新组织
 export const api = {
@@ -64,6 +65,9 @@ export const api = {
   fs: {
     ...fsService,
   },
+
+  // 公开接口（无需认证）
+  public: publicService,
 
   // 兼容性导出 - 保持向后兼容
   admin: {

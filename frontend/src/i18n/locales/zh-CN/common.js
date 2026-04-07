@@ -99,6 +99,7 @@ export default {
   pageTitle: {
     // 主页面子标题（用于动态组合）
     homeSubtitle: "在线剪贴板",
+    editorSubtitle: "文本编辑",
     uploadSubtitle: "文件上传",
     pasteViewSubtitle: "查看分享",
     fileViewSubtitle: "文件预览",
@@ -124,7 +125,8 @@ export default {
     },
   },
   nav: {
-    home: "文本编辑",
+    home: "首页",
+    editor: "文本编辑",
     upload: "文件上传",
     mountExplorer: "挂载浏览",
     admin: "管理面板",
@@ -163,5 +165,22 @@ export default {
       aborted: "视频加载被中断",
       decodeFailed: "视频解码错误",
     },
+  },
+  home: {
+    title: "CloudPaste",
+    subtitle: "简单、快速、安全的在线剪贴板与文件分享平台",
+    recentShares: "最近分享",
+    createText: "创建文本分享",
+    uploadFile: "上传文件",
+    refresh: "刷新",
+    noShares: "暂无公开分享，快来创建第一个吧！",
+    justNow: "刚刚",
+    minutesAgo: "分钟前",
+    hoursAgo: "小时前",
+    daysAgo: "天前",
+    statTextShares: "文本分享",
+    statFileShares: "文件分享",
+    statTotalShares: "总分享",
+    statTotalViews: "总浏览",
   },
 };

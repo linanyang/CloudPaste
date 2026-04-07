@@ -98,6 +98,7 @@ export default {
   pageTitle: {
     // Main page subtitles (for dynamic composition)
     homeSubtitle: "Online Clipboard",
+    editorSubtitle: "Text Editor",
     uploadSubtitle: "File Upload",
     pasteViewSubtitle: "View Share",
     fileViewSubtitle: "File Preview",
@@ -123,7 +124,8 @@ export default {
     },
   },
   nav: {
-    home: "Text Editor",
+    home: "Home",
+    editor: "Text Editor",
     upload: "File Upload",
     mountExplorer: "Mount Explorer",
     admin: "Admin Panel",
@@ -162,5 +164,22 @@ export default {
       aborted: "Video loading was aborted",
       decodeFailed: "Video decode error",
     },
+  },
+  home: {
+    title: "CloudPaste",
+    subtitle: "Simple, fast, and secure online clipboard and file sharing platform",
+    recentShares: "Recent Shares",
+    createText: "Create Text Share",
+    uploadFile: "Upload File",
+    refresh: "Refresh",
+    noShares: "No public shares yet. Create your first one!",
+    justNow: "Just now",
+    minutesAgo: "m ago",
+    hoursAgo: "h ago",
+    daysAgo: "d ago",
+    statTextShares: "Text Shares",
+    statFileShares: "File Shares",
+    statTotalShares: "Total Shares",
+    statTotalViews: "Total Views",
   },
 };

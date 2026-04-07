@@ -20,6 +20,7 @@ import fileViewRoutes from "./routes/fileViewRoutes.js";
 import { fsProxyRoutes } from "./routes/fsProxyRoutes.js";
 import { proxyLinkRoutes } from "./routes/proxyLinkRoutes.js";
 import scheduledRoutes from "./routes/scheduledRoutes.js";
+import { registerPublicSharesRoutes } from "./routes/publicSharesRoutes.js";
 import { securityContext } from "./security/middleware/securityContext.js";
 import { withRepositories } from "./utils/repositories.js";
 import { errorBoundary } from "./http/middlewares/errorBoundary.js";
@@ -200,6 +201,9 @@ app.route("/", fsMetaRoutes);
 app.route("/", fsProxyRoutes);
 app.route("/", proxyLinkRoutes);
 app.route("/", scheduledRoutes);
+
+// 公开分享列表路由（无需认证）
+registerPublicSharesRoutes(app);
 
 // 健康检查路由
 app.get("/api/health", (c) => {
