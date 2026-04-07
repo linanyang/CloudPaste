@@ -167,8 +167,7 @@ export default {
     },
   },
   home: {
-    title: "CloudPaste",
-    subtitle: "简单、快速、安全的在线剪贴板与文件分享平台",
+    overview: "分享概览",
     recentShares: "最近分享",
     createText: "创建文本分享",
     uploadFile: "上传文件",

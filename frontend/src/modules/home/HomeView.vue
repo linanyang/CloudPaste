@@ -1,29 +1,22 @@
 <template>
   <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl w-full pt-8 sm:pt-12 pb-20">
-    <!-- Hero 区域 -->
-    <div class="text-center mb-10">
-      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
-        {{ $t("home.title") }}
-      </h1>
-      <p class="text-base sm:text-lg max-w-2xl mx-auto opacity-70">
-        {{ $t("home.subtitle") }}
-      </p>
-    </div>
-
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-10">
-      <div
-        v-for="stat in stats"
-        :key="stat.label"
-        :class="[
-          'rounded-xl p-4 sm:p-5 transition-colors',
-          darkMode ? 'bg-gray-800/60 border border-gray-700/50' : 'bg-white border border-gray-100 shadow-token-1',
-        ]"
-      >
-        <div class="text-2xl sm:text-3xl font-bold mb-1" :class="darkMode ? 'text-primary-400' : 'text-primary-600'">
-          {{ stat.value }}
+    <!-- 分享概览 -->
+    <div>
+      <h2 class="text-lg sm:text-xl font-semibold mb-4">{{ $t("home.overview") }}</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div
+          v-for="stat in stats"
+          :key="stat.label"
+          :class="[
+            'rounded-xl p-4 sm:p-5 transition-colors',
+            darkMode ? 'bg-gray-800/60 border border-gray-700/50' : 'bg-white border border-gray-100 shadow-token-1',
+          ]"
+        >
+          <div class="text-2xl sm:text-3xl font-bold mb-1" :class="darkMode ? 'text-primary-400' : 'text-primary-600'">
+            {{ stat.value }}
+          </div>
+          <div class="text-xs sm:text-sm opacity-60">{{ stat.label }}</div>
         </div>
-        <div class="text-xs sm:text-sm opacity-60">{{ stat.label }}</div>
       </div>
     </div>
 

@@ -166,8 +166,7 @@ export default {
     },
   },
   home: {
-    title: "CloudPaste",
-    subtitle: "Simple, fast, and secure online clipboard and file sharing platform",
+    overview: "Share Overview",
     recentShares: "Recent Shares",
     createText: "Create Text Share",
     uploadFile: "Upload File",
