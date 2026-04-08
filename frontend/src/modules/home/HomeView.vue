@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl w-full pt-8 sm:pt-12 pb-20">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl w-full pt-8 sm:pt-12 pb-20 space-y-10">
     <!-- 分享概览 -->
     <div>
       <h2 class="text-lg sm:text-xl font-semibold mb-4">{{ $t("home.overview") }}</h2>
@@ -22,7 +22,7 @@
 
     <!-- 最近分享 -->
     <div>
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-5">
         <h2 class="text-lg sm:text-xl font-semibold">{{ $t("home.recentShares") }}</h2>
         <button
           v-if="!loading"
