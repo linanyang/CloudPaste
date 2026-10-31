@@ -63,6 +63,8 @@ export default {
       creating: "正在创建分享...",
       createSuccess: "分享创建成功！",
       createFailed: "保存失败",
+      updateSuccess: "分享已更新！",
+      contentLoaded: "已加载分享内容，保存后即更新",
       linkOccupied: "链接后缀已被占用，请更换其他后缀",
       contentTooLarge: "内容过大，请减少内容长度",
       unknownError: "未知错误",

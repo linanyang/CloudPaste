@@ -1,0 +1,1 @@
+import{b as f}from"./vendor-utils-B5GPOPDn.js";async function r(r,{darkMode:o=!1,width:t=300,margin:a=2}={}){if(!r)throw new Error("无法生成二维码：URL为空");return f.toDataURL(r,{width:t,margin:a,color:{dark:o?"#ffffff":"#000000",light:o?"#000000":"#ffffff"}})}export{r as g};

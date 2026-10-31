@@ -63,6 +63,8 @@ export default {
       creating: "Creating share...",
       createSuccess: "Share created successfully!",
       createFailed: "Save failed",
+      updateSuccess: "Share updated successfully!",
+      contentLoaded: "Content loaded. Save to apply changes.",
       linkOccupied: "Link suffix is already taken, please use another one",
       contentTooLarge: "Content too large, please reduce content length",
       unknownError: "Unknown error",
