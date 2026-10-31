@@ -533,6 +533,23 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
 
+      // 修复：游客会话（自动游客登录获得 API Key）不应视为有管理面板访问权，
+      // 否则游客点击"管理面板"会以"用户面板"身份进入且无法管理文件。
+      // 通过 sessionStorage 的 cp_guest_session 标记区分游客与普通 API Key 用户，
+      // 游客访问管理区时清除游客态并重定向到登录页。
+      let isGuestSession = false;
+      try {
+        isGuestSession = sessionStorage.getItem("cp_guest_session") === "1";
+      } catch { /* ignore */ }
+
+      if (isGuestSession && !authStore.isAdmin) {
+        log.debug("路由守卫：游客会话无管理权限，清除游客态并重定向到登录页");
+        await authStore.logout();
+        NProgress.done();
+        next({ name: "AdminLogin", query: { redirect: to.fullPath } });
+        return;
+      }
+
       // 检查是否有管理权限（管理员或任何已认证的API密钥用户）
       // API密钥用户需要能够访问管理面板进行登出操作，具体权限在页面级别控制
       const hasManagementAccess = authStore.isAdmin || authStore.authType === "apikey";
