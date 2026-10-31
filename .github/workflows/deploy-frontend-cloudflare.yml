@@ -40,7 +40,14 @@ jobs:
             exit 0
           fi
 
-          # 自动触发（push 或控制面板触发）根据仓库级变量决定是否部署
+          # push 自动触发：已切换为前后端分离部署，直接部署（不再检查 FRONTEND_DEPLOY 开关）
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ push 自动触发（分离部署模式），允许部署"
+            exit 0
+          fi
+
+          # 控制面板触发仍按开关变量决定
           FRONTEND_ENABLED="${{ vars.FRONTEND_DEPLOY }}"
           # 默认行为：如果仓库变量未设置，视为已开启自动部署（向下兼容旧逻辑）
           [ -z "$FRONTEND_ENABLED" ] && FRONTEND_ENABLED="true"

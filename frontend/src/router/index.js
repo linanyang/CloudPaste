@@ -484,7 +484,9 @@ router.beforeEach(async (to, from, next) => {
 
     // 自动游客会话：在首次未认证状态下尝试一次基于 Guest API Key 的登录
     // 统一在任意路由入口触发一次（包括 /admin 相关路由），由 maybeAutoGuestLogin 自身通过 guestAutoTried 控制只尝试一次
-    if (!authStore.isAuthenticated && authStore.authType === "none") {
+    // 修复：目标为管理员登录页时不做自动游客登录，否则游客会话会"顶掉"登录页，
+    // 导致 /admin/login 被"已认证重定向"劫持，用户永远看不到登录表单
+    if (!authStore.isAuthenticated && authStore.authType === "none" && to.name !== "AdminLogin") {
       if (typeof authStore.maybeAutoGuestLogin === "function") {
         await authStore.maybeAutoGuestLogin();
       }
@@ -508,18 +510,16 @@ router.beforeEach(async (to, from, next) => {
 
     // 登录页面访问控制
     if (to.name === "AdminLogin") {
-      if (authStore.isAuthenticated) {
-        log.debug("路由守卫：已认证用户访问登录页面，重定向到合适的管理页面");
-        const defaultRoute = getDefaultRouteForUser(authStore);
+      // 修复：仅真正的管理员（admin token）访问登录页时才重定向。
+      // 此前条件是 isAuthenticated，而游客自动登录（authType=apikey）也会置为 true，
+      // 导致游客会话用户被重定向进面板且看不到登录表单。
+      if (authStore.isAdmin) {
+        log.debug("路由守卫：管理员已登录，访问登录页重定向到管理面板");
         NProgress.done();
-        if (defaultRoute) {
-          next({ name: defaultRoute });
-        } else {
-          next({ name: "Home" });
-        }
+        next({ name: "AdminDashboard" });
         return;
       }
-      // 未认证用户可以访问登录页面
+      // API Key / 游客 / 未认证用户均放行：允许其重新登录管理员账号
       next();
       return;
     }

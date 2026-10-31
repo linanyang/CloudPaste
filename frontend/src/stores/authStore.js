@@ -241,6 +241,10 @@ export const useAuthStore = defineStore("auth", () => {
   const clearAuthState = () => {
     isAuthenticated.value = false;
     authType.value = "none";
+    // 修复：同步清除游客会话标记
+    try {
+      sessionStorage.removeItem("cp_guest_session");
+    } catch { /* ignore */ }
     adminToken.value = null;
     apiKey.value = null;
     apiKeyInfo.value = null;
@@ -530,6 +534,12 @@ export const useAuthStore = defineStore("auth", () => {
 
       // 游客会话与普通 API Key 一样持久化，支持刷新后自动恢复
       saveToStorage();
+
+      // 修复：标记当前为游客会话（sessionStorage，标签页生命周期）
+      // 供路由守卫区分"游客"与"普通 API Key 用户"，避免游客会话劫持登录页
+      try {
+        sessionStorage.setItem("cp_guest_session", "1");
+      } catch { /* ignore */ }
 
       try {
         window.dispatchEvent(
