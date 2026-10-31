@@ -1,1 +1,0 @@
-import{f as e}from"./fileTypes-CTiyTdOD.js";const i=(i,s=!1)=>"number"!=typeof i||!Number.isFinite(i)||i<0?"-":e(i),s=e=>{if(!e||!e.max_views||0===e.max_views)return 1/0;const i=void 0!==e.view_count?e.view_count:e.views||0,s=e.max_views-i;return s<=0?0:s};export{i as f,s as g};

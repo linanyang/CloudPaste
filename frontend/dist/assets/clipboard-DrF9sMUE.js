@@ -1,1 +1,0 @@
-import{E as r,c as t}from"./index-6r8M7FTJ.js";const a=r({legacy:!0}),c=t("Clipboard"),o=async r=>{try{const t=String(r??"");return!!t&&(await a.copy(t),!0)}catch(t){return c.error("复制到剪贴板失败:",t),!1}};export{o as c};
