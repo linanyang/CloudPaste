@@ -384,10 +384,17 @@ async function doDelete(share) {
     showResult(true, `${t("common.delete") || "删除"}「${label}」成功`);
     await loadShares();
   } catch (e) {
-    // 401/403：未登录或无管理权限
-    showResult(false, e?.status === 401 || e?.response?.status === 401
-      ? t("home.needLoginToDelete") || "请先登录管理员账号或使用具有管理权限的 API 密钥后再删除"
-      : (e?.message || t("common.deleteFailed") || "删除失败"));
+    // 401/403 或后端权限类错误：引导用户以管理员身份登录
+    const status = e?.status || e?.response?.status || e?.code;
+    const msg = e?.message || "";
+    const noPermission = status === 401 || status === 403 || msg.includes("权限") || msg.includes("Unauthorized") || msg.includes("Forbidden");
+    if (noPermission) {
+      if (window.confirm(`${t("home.needLoginToDelete") || "请先登录管理员账号后再删除"}\n\n${t("home.goLoginNow") || "是否立即前往登录页？"}`)) {
+        router.push({ name: "AdminLogin", query: { redirect: "/" } });
+      }
+    } else {
+      showResult(false, msg || t("common.deleteFailed") || "删除失败");
+    }
   }
 }
 
