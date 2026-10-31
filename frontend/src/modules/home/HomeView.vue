@@ -382,6 +382,11 @@ async function confirmPasswordGate() {
 
 async function performDelete(share) {
   const label = share.type === "text" ? share.title || share.slug : share.filename;
+  if (!share.id) {
+    showResult(false, "该分享缺少 ID，无法删除，请刷新页面后重试");
+    await loadShares();
+    return;
+  }
   try {
     if (share.type === "text") {
       await batchDeletePastes([share.id]);

@@ -48,6 +48,7 @@ const registerPublicSharesRoutes = (router) => {
 
     const textShares = (pastes.results || []).map((p) => ({
       type: "text",
+      id: p.id,
       slug: p.slug,
       title: p.title || null,
       remark: p.remark || null,
@@ -59,6 +60,7 @@ const registerPublicSharesRoutes = (router) => {
 
     const fileShares = (files.results || []).map((f) => ({
       type: "file",
+      id: f.id,
       slug: f.slug,
       filename: f.filename,
       size: f.size || 0,
