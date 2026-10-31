@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useEventListener } from "@vueuse/core";
 import EnvSwitcher from "./components/EnvSwitcher.vue";
-import LanguageSwitcher from "./components/LanguageSwitcher.vue";
 import PWAInstallPrompt from "./components/PWAInstallPrompt.vue";
 import GlobalMusicPlayer from "./components/common/GlobalMusicPlayer.vue";
 import { useAuthStore } from "./stores/authStore.js";
@@ -145,7 +144,9 @@ const isDev = import.meta.env.DEV;
         <div class="flex justify-between h-16">
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold">{{ siteConfigStore.siteTitle || $t("app.title") }}</h1>
+              <router-link to="/" class="text-xl font-bold hover:opacity-80 transition-opacity" :title="$t('nav.home')">
+                {{ siteConfigStore.siteTitle || $t("app.title") }}
+              </router-link>
             </div>
             <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
               <router-link
@@ -239,8 +240,6 @@ const isDev = import.meta.env.DEV;
               ></span>
             </button>
 
-            <LanguageSwitcher :darkMode="isDarkMode" />
-
             <button
               type="button"
               @click="toggleThemeMode"
@@ -291,8 +290,6 @@ const isDev = import.meta.env.DEV;
                 aria-hidden="true"
               ></span>
             </button>
-
-            <LanguageSwitcher :darkMode="isDarkMode" class="mr-2" />
 
             <button
               type="button"
