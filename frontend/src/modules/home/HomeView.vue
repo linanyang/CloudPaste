@@ -70,18 +70,46 @@
 
       <!-- 分享卡片列表 -->
       <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <a
+        <div
           v-for="share in shares"
           :key="share.type + '-' + share.slug"
-          :href="getShareUrl(share)"
+          @click="goToShare(share)"
           :class="[
-            'group block rounded-xl p-4 sm:p-5 transition-all duration-200 border',
+            'group relative block rounded-xl p-4 sm:p-5 transition-all duration-200 border cursor-pointer',
             'hover:shadow-token-2 hover:-translate-y-0.5',
             darkMode
               ? 'bg-gray-800/60 border-gray-700/50 hover:border-gray-600'
               : 'bg-white border-gray-100 hover:border-gray-200',
           ]"
         >
+          <!-- 快捷操作按钮：编辑 / 删除（右上角悬浮） -->
+          <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+            <button
+              v-if="share.type === 'text'"
+              type="button"
+              :title="$t('common.edit') || '编辑'"
+              class="p-1.5 rounded-full transition-all duration-150 opacity-60 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              :class="darkMode ? 'text-gray-400 hover:text-primary-400 hover:bg-gray-700/70' : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100'"
+              @click.stop.prevent="openPasswordGate(share, 'edit')"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              :title="$t('common.delete') || '删除'"
+              class="p-1.5 rounded-full transition-all duration-150 opacity-60 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              :class="darkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700/70' : 'text-gray-400 hover:text-red-500 hover:bg-gray-100'"
+              @click.stop.prevent="openPasswordGate(share, 'delete')"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
           <!-- 类型徽标 + 文件名 -->
           <div class="flex items-center gap-3 mb-3">
             <div
@@ -152,7 +180,49 @@
             <!-- 时间 -->
             <span class="ml-auto">{{ formatTime(share.createdAt) }}</span>
           </div>
-        </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 密码验证弹窗（密码保护内容的快捷编辑/删除前置校验） -->
+    <div v-if="pwdGate.visible" class="fixed inset-0 z-50 flex items-center justify-center px-4" @click.self="closePasswordGate">
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div
+        class="relative w-full max-w-sm rounded-xl p-6 shadow-xl"
+        :class="darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'"
+      >
+        <h3 class="text-base font-semibold mb-1">
+          {{ pwdGate.action === 'edit' ? ($t('common.edit') || '编辑') : ($t('common.delete') || '删除') }}
+        </h3>
+        <p class="text-xs opacity-60 mb-4 break-all">
+          {{ $t('home.passwordProtected') || '该内容受密码保护，请输入访问密码以继续' }}
+        </p>
+        <input
+          v-model="pwdGate.password"
+          type="password"
+          class="form-input w-full mb-4"
+          :placeholder="$t('paste.passwordPlaceholder') || '请输入密码'"
+          @keyup.enter="confirmPasswordGate"
+        />
+        <p v-if="pwdGate.error" class="text-xs text-red-500 mb-3">{{ pwdGate.error }}</p>
+        <div class="flex justify-end gap-2">
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-md text-sm transition-colors"
+            :class="darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'"
+            @click="closePasswordGate"
+          >
+            {{ $t('common.cancel') || '取消' }}
+          </button>
+          <button
+            type="button"
+            :disabled="pwdGate.loading"
+            class="px-3 py-1.5 rounded-md text-sm text-white bg-primary-600 hover:bg-primary-500 disabled:opacity-60 transition-colors"
+            @click="confirmPasswordGate"
+          >
+            {{ pwdGate.loading ? ($t('common.loading') || '处理中…') : ($t('common.confirm') || '确认') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -197,13 +267,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { useThemeMode } from "@/composables/core/useThemeMode.js";
 import { getRecentShares } from "@/api/services/publicService.js";
+import { getPaste, batchDeletePastes } from "@/api/services/pasteService.js";
+import { batchDeleteFiles, verifyFilePassword } from "@/api/services/fileService.js";
 
 const { t } = useI18n();
 const { isDarkMode: darkMode } = useThemeMode();
+const router = useRouter();
 
 const shares = ref([]);
 const loading = ref(true);
@@ -223,6 +297,102 @@ const stats = computed(() => [
 function getShareUrl(share) {
   if (share.type === "text") return `/paste/${share.slug}`;
   return `/file/${share.slug}`;
+}
+
+function goToShare(share) {
+  router.push(getShareUrl(share));
+}
+
+// ===== 密码门 + 快捷编辑/删除 =====
+const pwdGate = reactive({
+  visible: false,
+  loading: false,
+  error: "",
+  password: "",
+  share: null,
+  action: null, // 'edit' | 'delete'
+});
+
+function openPasswordGate(share, action) {
+  // 公开内容：编辑直接跳编辑器；删除需一次确认
+  if (!share.hasPassword) {
+    if (action === "edit") {
+      startEdit(share);
+    } else {
+      doDelete(share);
+    }
+    return;
+  }
+  pwdGate.visible = true;
+  pwdGate.error = "";
+  pwdGate.password = "";
+  pwdGate.share = share;
+  pwdGate.action = action;
+}
+
+function closePasswordGate() {
+  pwdGate.visible = false;
+  pwdGate.loading = false;
+  pwdGate.share = null;
+  pwdGate.action = null;
+}
+
+async function confirmPasswordGate() {
+  if (!pwdGate.password || !pwdGate.share) return;
+  pwdGate.loading = true;
+  pwdGate.error = "";
+  const share = pwdGate.share;
+  const action = pwdGate.action;
+  try {
+    // 通过公开接口验证密码：GET/POST /paste/:slug 携带密码
+    if (share.type === "text") {
+      await getPaste(share.slug, pwdGate.password);
+    } else {
+      await verifyFilePassword(share.slug, pwdGate.password);
+    }
+    closePasswordGate();
+    if (action === "edit") {
+      startEdit(share, pwdGate.password);
+    } else {
+      doDelete(share);
+    }
+  } catch (e) {
+    pwdGate.error = e?.message || "密码错误或验证失败";
+  } finally {
+    pwdGate.loading = false;
+  }
+}
+
+function startEdit(share, password = "") {
+  if (share.type !== "text") return;
+  const query = { edit: share.slug };
+  if (password) query.pwd = password;
+  router.push({ path: "/editor", query });
+}
+
+async function doDelete(share) {
+  const label = share.type === "text" ? share.title || share.slug : share.filename;
+  if (!window.confirm(`${t("common.delete") || "删除"}「${label}」？${t("home.deleteConfirm") || "此操作不可恢复。"}`)) {
+    return;
+  }
+  try {
+    if (share.type === "text") {
+      await batchDeletePastes([share.id]);
+    } else {
+      await batchDeleteFiles([share.id], "both");
+    }
+    showResult(true, `${t("common.delete") || "删除"}「${label}」成功`);
+    await loadShares();
+  } catch (e) {
+    // 401/403：未登录或无管理权限
+    showResult(false, e?.status === 401 || e?.response?.status === 401
+      ? t("home.needLoginToDelete") || "请先登录管理员账号或使用具有管理权限的 API 密钥后再删除"
+      : (e?.message || t("common.deleteFailed") || "删除失败"));
+  }
+}
+
+function showResult(ok, msg) {
+  window.alert(msg);
 }
 
 function formatSize(bytes) {

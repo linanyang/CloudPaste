@@ -95,6 +95,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useDebounceFn, useEventListener, useLocalStorage, useTimeoutFn } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/authStore";
@@ -112,6 +113,14 @@ import CopyFormatMenu from "@/modules/paste/editor/components/CopyFormatMenu.vue
 
 const { t } = useI18n();
 const log = createLogger("MarkdownEditor");
+const route = useRoute();
+const router = useRouter();
+
+// ===== 编辑模式（/editor?edit=<slug>&pwd=<password>）=====
+// 从首页"最近分享"卡片的快捷编辑按钮进入，加载已有内容进行更新
+const editSlug = ref("");
+const editPassword = ref("");
+const isEditMode = computed(() => !!editSlug.value);
 
 // 使用认证Store
 const authStore = useAuthStore();
@@ -387,6 +396,23 @@ const saveContent = async (formData) => {
 
     log.debug("创建分享，数据:", pasteData);
 
+    // ===== 编辑模式：更新已有分享 =====
+    if (isEditMode.value) {
+      const updateData = { content: editorContent.value };
+      if (formData.title && formData.title.trim()) updateData.title = formData.title.trim();
+      if (formData.remark && formData.remark.trim()) updateData.remark = formData.remark.trim();
+      if (formData.password && formData.password.trim()) updateData.password = formData.password.trim();
+      if (formData.max_views && parseInt(formData.max_views) > 0) updateData.max_views = parseInt(formData.max_views);
+      if (typeof formData.is_public === "boolean") updateData.is_public = formData.is_public;
+
+      await pasteService.updatePaste(editSlug.value, updateData);
+      shareLink.value = `${window.location.origin}/paste/${editSlug.value}`;
+      currentSharePassword.value = formData.password || editPassword.value;
+      if (shareLinkRef.value) shareLinkRef.value.startCountdown();
+      handleStatusMessage(t("markdown.messages.updateSuccess") || "更新成功");
+      return;
+    }
+
     // 调用领域 service，统一返回 slug
     const slug = await pasteService.createPaste(pasteData);
     log.debug("创建分享结果 slug:", slug);
@@ -435,6 +461,33 @@ const autoSaveDebounce = useDebounceFn(() => {
 
 // 组件挂载
 onMounted(async () => {
+  // 编辑模式：根据 query 中的 slug 加载已有分享内容
+  if (route.query.edit) {
+    editSlug.value = String(route.query.edit);
+    editPassword.value = route.query.pwd ? String(route.query.pwd) : "";
+    try {
+      const resp = await pasteService.getPasteBySlug(editSlug.value, editPassword.value || null);
+      const data = resp?.data ?? resp;
+      if (data && typeof data.content === "string") {
+        editorContent.value = data.content;
+        nextTick(() => {
+          if (editorRef.value && typeof editorRef.value.setValue === "function") {
+            editorRef.value.setValue(data.content);
+          }
+        });
+        showInfo(t("markdown.messages.contentLoaded") || "已加载分享内容，保存后即更新");
+        // 清理 URL 参数，避免刷新重复加载覆盖本地草稿
+        router.replace({ path: "/editor" });
+        return;
+      }
+    } catch (e) {
+      log.error("加载待编辑内容失败:", e);
+      showError(e?.message || t("markdown.messages.unknownError"));
+      router.replace({ path: "/editor" });
+      return;
+    }
+  }
+
   // 恢复保存的内容
   try {
     if (draftContent.value) {
