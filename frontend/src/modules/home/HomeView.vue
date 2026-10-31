@@ -82,8 +82,8 @@
               : 'bg-white border-gray-100 hover:border-gray-200',
           ]"
         >
-          <!-- 快捷操作按钮：编辑 / 删除（右上角悬浮） -->
-          <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+          <!-- 快捷操作按钮：编辑 / 删除（右侧，与左侧类型图标垂直居中对齐） -->
+          <div class="absolute top-5 sm:top-6 right-3 flex items-center gap-1.5 z-10">
             <button
               v-if="share.type === 'text'"
               type="button"
@@ -195,13 +195,17 @@
           {{ pwdGate.action === 'edit' ? ($t('common.edit') || '编辑') : ($t('common.delete') || '删除') }}
         </h3>
         <p class="text-xs opacity-60 mb-4 break-all">
-          {{ $t('home.passwordProtected') || '该内容受密码保护，请输入访问密码以继续' }}
+          {{ pwdGate.action === 'delete'
+            ? ($t('home.adminPasswordPrompt') || '请输入管理员密码，验证通过后将直接删除该内容')
+            : ($t('home.passwordProtected') || '该内容受密码保护，请输入访问密码以继续') }}
         </p>
         <input
           v-model="pwdGate.password"
           type="password"
           class="form-input w-full mb-4"
-          :placeholder="$t('paste.passwordPlaceholder') || '请输入密码'"
+          :placeholder="pwdGate.action === 'delete'
+            ? ($t('home.adminPasswordPlaceholder') || '请输入管理员密码')
+            : ($t('paste.passwordPlaceholder') || '请输入密码')"
           @keyup.enter="confirmPasswordGate"
         />
         <p v-if="pwdGate.error" class="text-xs text-red-500 mb-3">{{ pwdGate.error }}</p>
@@ -274,10 +278,12 @@ import { useThemeMode } from "@/composables/core/useThemeMode.js";
 import { getRecentShares } from "@/api/services/publicService.js";
 import { getPaste, batchDeletePastes } from "@/api/services/pasteService.js";
 import { batchDeleteFiles, verifyFilePassword } from "@/api/services/fileService.js";
+import { useAuthStore } from "@/stores/authStore.js";
 
 const { t } = useI18n();
 const { isDarkMode: darkMode } = useThemeMode();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const shares = ref([]);
 const loading = ref(true);
@@ -314,20 +320,25 @@ const pwdGate = reactive({
 });
 
 function openPasswordGate(share, action) {
-  // 公开内容：编辑直接跳编辑器；删除需一次确认
+  if (action === "delete") {
+    // 删除：统一弹出管理员密码框，验证通过后直接删除
+    pwdGate.visible = true;
+    pwdGate.error = "";
+    pwdGate.password = "";
+    pwdGate.share = share;
+    pwdGate.action = "delete";
+    return;
+  }
+  // 编辑：公开内容直接进编辑器；密码内容先验证访问密码
   if (!share.hasPassword) {
-    if (action === "edit") {
-      startEdit(share);
-    } else {
-      doDelete(share);
-    }
+    startEdit(share);
     return;
   }
   pwdGate.visible = true;
   pwdGate.error = "";
   pwdGate.password = "";
   pwdGate.share = share;
-  pwdGate.action = action;
+  pwdGate.action = "edit";
 }
 
 function closePasswordGate() {
@@ -344,37 +355,33 @@ async function confirmPasswordGate() {
   const share = pwdGate.share;
   const action = pwdGate.action;
   try {
-    // 通过公开接口验证密码：GET/POST /paste/:slug 携带密码
+    if (action === "delete") {
+      // 删除：用输入的管理员密码登录，成功即具备管理权限，随后直接删除
+      await authStore.adminLogin("admin", pwdGate.password);
+      closePasswordGate();
+      await performDelete(share);
+      return;
+    }
+    // 编辑：验证分享访问密码（文本/文件各自接口）
     if (share.type === "text") {
       await getPaste(share.slug, pwdGate.password);
     } else {
       await verifyFilePassword(share.slug, pwdGate.password);
     }
     closePasswordGate();
-    if (action === "edit") {
-      startEdit(share, pwdGate.password);
-    } else {
-      doDelete(share);
-    }
+    startEdit(share, pwdGate.password);
   } catch (e) {
-    pwdGate.error = e?.message || "密码错误或验证失败";
+    const msg = e?.message || "";
+    pwdGate.error = msg.includes("权限") || msg.includes("credential") || /401|403/.test(String(e?.status || e?.response?.status || ""))
+      ? t("home.adminPasswordError") || "管理员密码错误，请重试"
+      : (msg || "验证失败，请重试");
   } finally {
     pwdGate.loading = false;
   }
 }
 
-function startEdit(share, password = "") {
-  if (share.type !== "text") return;
-  const query = { edit: share.slug };
-  if (password) query.pwd = password;
-  router.push({ path: "/editor", query });
-}
-
-async function doDelete(share) {
+async function performDelete(share) {
   const label = share.type === "text" ? share.title || share.slug : share.filename;
-  if (!window.confirm(`${t("common.delete") || "删除"}「${label}」？${t("home.deleteConfirm") || "此操作不可恢复。"}`)) {
-    return;
-  }
   try {
     if (share.type === "text") {
       await batchDeletePastes([share.id]);
@@ -396,6 +403,18 @@ async function doDelete(share) {
       showResult(false, msg || t("common.deleteFailed") || "删除失败");
     }
   }
+}
+
+async function doDelete(share) {
+  // 保留入口：直接删除（不再额外弹确认框）
+  await performDelete(share);
+}
+
+function startEdit(share, password = "") {
+  if (share.type !== "text") return;
+  const query = { edit: share.slug };
+  if (password) query.pwd = password;
+  router.push({ path: "/editor", query });
 }
 
 function showResult(ok, msg) {
